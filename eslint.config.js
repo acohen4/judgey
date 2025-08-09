@@ -6,11 +6,33 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const tsFiles = ['**/*.ts', '**/*.mts', '**/*.cts'];
+
+// Base typed config for TS files only
+const typedBase = {
+  files: tsFiles,
+  languageOptions: {
+    parserOptions: {
+      projectService: true,
+      tsconfigRootDir: __dirname,
+    },
+    ecmaVersion: 2022,
+    sourceType: 'module',
+    globals: { ...globals.node },
+  },
+};
+
+// Apply recommended type-checked rules to TS files only
+const typedRuleConfigs = tseslint.configs.recommendedTypeChecked.map((c) => ({
+  ...c,
+  files: tsFiles,
+}));
 
 export default [
   { ignores: ['dist/**', 'coverage/**', 'node_modules/**'] },
 
-  // JS files
+  // Global JS recommended rules
+  js.configs.recommended,
   {
     files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
     languageOptions: {
@@ -18,28 +40,12 @@ export default [
       sourceType: 'module',
       globals: { ...globals.node },
     },
-    ...js.configs.recommended,
   },
 
   // TS files (type-aware)
-  ...tseslint.config(
-    {
-      files: ['**/*.ts', '**/*.mts', '**/*.cts'],
-      languageOptions: {
-        parserOptions: {
-          // Type-aware rules without listing every tsconfig
-          projectService: true,
-          tsconfigRootDir: __dirname,
-        },
-        ecmaVersion: 2022,
-        sourceType: 'module',
-        globals: { ...globals.node },
-      },
-    },
-    ...tseslint.configs.recommendedTypeChecked,
-    // Turn off formatting-related rules to let Prettier handle formatting
-    eslintConfigPrettier,
-  ),
+  typedBase,
+  ...typedRuleConfigs,
+
+  // Turn off formatting-related rules to let Prettier handle formatting
+  eslintConfigPrettier,
 ];
-
-

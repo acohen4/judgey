@@ -1,5 +1,4 @@
 {
-  "extends": null,
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022"],
@@ -24,5 +23,3 @@
   "include": ["src"],
   "exclude": ["dist", "node_modules"]
 }
-
-
