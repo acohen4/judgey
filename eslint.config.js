@@ -8,13 +8,18 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const tsFiles = ['**/*.ts', '**/*.mts', '**/*.cts'];
 
-// Base typed config for TS files only
 const typedBase = {
   files: tsFiles,
   languageOptions: {
+    parser: tseslint.parser, // ⬅️ ensure TS parser
     parserOptions: {
-      projectService: true,
+      // EITHER use explicit project…
+      project: [path.join(__dirname, 'tsconfig.json')],
       tsconfigRootDir: __dirname,
+
+      // …OR use projectService: true (comment the two lines above if you prefer this)
+      // projectService: true,
+      // tsconfigRootDir: __dirname,
     },
     ecmaVersion: 2022,
     sourceType: 'module',
@@ -22,16 +27,15 @@ const typedBase = {
   },
 };
 
-// Apply recommended type-checked rules to TS files only
+// Keep recommended type-checked configs, but scope them to TS files
 const typedRuleConfigs = tseslint.configs.recommendedTypeChecked.map((c) => ({
   ...c,
   files: tsFiles,
 }));
 
 export default [
-  { ignores: ['dist/**', 'coverage/**', 'node_modules/**'] },
+  { ignores: ['dist/**', 'coverage/**', 'node_modules/**', 'vitest.config.ts'] },
 
-  // Global JS recommended rules
   js.configs.recommended,
   {
     files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
@@ -42,10 +46,8 @@ export default [
     },
   },
 
-  // TS files (type-aware)
   typedBase,
   ...typedRuleConfigs,
 
-  // Turn off formatting-related rules to let Prettier handle formatting
   eslintConfigPrettier,
 ];
